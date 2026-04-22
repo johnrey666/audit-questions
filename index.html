@@ -1,0 +1,1109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Food Safety Audit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f9fafb;
+      --white: #ffffff;
+      --ink: #111827;
+      --ink-2: #374151;
+      --ink-3: #6b7280;
+      --ink-4: #9ca3af;
+      --border: #e5e7eb;
+      --border-2: #d1d5db;
+      --yes: #16a34a;
+      --yes-bg: #f0fdf4;
+      --no: #dc2626;
+      --no-bg: #fef2f2;
+      --blue: #2563eb;
+      --blue-bg: #eff6ff;
+      --radius: 14px;
+      --radius-sm: 9px;
+      --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+    }
+    .screen { display: none; min-height: 100dvh; flex-direction: column; }
+    .screen.active { display: flex; }
+
+    /* ── INTRO ─────────────────────────────────────── */
+    #introScreen {
+      justify-content: center;
+      align-items: stretch;
+      padding: 32px 20px calc(32px + env(safe-area-inset-bottom));
+    }
+    .intro-inner {
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      justify-content: center;
+      flex: 1;
+    }
+    .intro-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .intro-logo-icon {
+      width: 38px; height: 38px;
+      background: var(--ink);
+      border-radius: 9px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px;
+    }
+    .intro-logo-text {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1.2;
+    }
+    .intro-logo-text span {
+      display: block;
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--ink-3);
+    }
+    .intro-heading h1 {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+    .intro-heading p {
+      font-size: 14px;
+      color: var(--ink-3);
+      line-height: 1.55;
+    }
+    .intro-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .stat-box {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px;
+      text-align: center;
+    }
+    .stat-num { font-size: 20px; font-weight: 700; color: var(--ink); letter-spacing: -0.02em; }
+    .stat-lbl { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+    .intro-form {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: grid;
+      gap: 14px;
+      box-shadow: var(--shadow);
+    }
+    .intro-form-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    .form-row { display: grid; gap: 5px; }
+    .form-row label { font-size: 12px; font-weight: 500; color: var(--ink-2); }
+    .form-row input {
+      width: 100%;
+      padding: 10px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      background: var(--bg);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .form-row input:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .start-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--ink);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+    }
+    .start-btn:hover { background: #1f2937; transform: translateY(-1px); }
+    .start-btn:active { transform: translateY(0); }
+
+    /* ── AUDIT SCREEN ─────────────────────────────── */
+    #auditScreen { flex-direction: column; }
+
+    .audit-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(249,250,251,0.96);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 20px 10px;
+    }
+    .audit-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      gap: 10px;
+    }
+    .audit-section-name {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      max-width: 65%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .audit-q-count {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-3);
+      white-space: nowrap;
+    }
+    .audit-q-count .answered {
+      color: var(--blue);
+      font-weight: 700;
+    }
+    .progress-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .progress-track {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--ink);
+      width: 0%;
+      transition: width 0.3s ease;
+      border-radius: 999px;
+    }
+    .progress-pct {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+      min-width: 28px;
+      text-align: right;
+    }
+
+    .audit-scroll {
+      flex: 1;
+      padding: 20px 16px 180px;
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    /* question card */
+    .question-stage { position: relative; overflow: hidden; }
+    .question-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      will-change: transform, opacity;
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease;
+    }
+    .question-card.enter-from-right { transform: translateX(48px); opacity: 0; }
+    .question-card.enter-from-left  { transform: translateX(-48px); opacity: 0; }
+    .question-card.is-active        { transform: translateX(0); opacity: 1; }
+    .question-card.leave-to-left    { transform: translateX(-48px); opacity: 0; pointer-events: none; position: absolute; top: 0; left: 0; right: 0; }
+    .question-card.leave-to-right   { transform: translateX(48px); opacity: 0; pointer-events: none; position: absolute; top: 0; left: 0; right: 0; }
+
+    .q-top {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .q-num-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .q-answer-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .q-answer-pill.yes { background: var(--yes-bg); color: var(--yes); }
+    .q-answer-pill.no  { background: var(--no-bg); color: var(--no); }
+    .q-answer-pill.pending { background: var(--bg); color: var(--ink-4); border: 1px solid var(--border); }
+
+    .q-text-wrap { padding: 18px 16px 16px; }
+    .q-text {
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.6;
+      color: var(--ink);
+      white-space: pre-line;
+    }
+    .q-divider { height: 1px; background: var(--border); }
+    .q-fields {
+      padding: 16px 16px 20px;
+      display: grid;
+      gap: 14px;
+    }
+    .q-field-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--ink-3);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+    select, textarea {
+      width: 100%;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      color: var(--ink);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      background: var(--bg);
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    select {
+      padding: 10px 30px 10px 12px;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+    textarea {
+      padding: 10px 12px;
+      min-height: 76px;
+      resize: vertical;
+      line-height: 1.5;
+    }
+    select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      background: var(--white);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
+    }
+    .upload-zone {
+      position: relative;
+      border: 1px dashed var(--border-2);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      text-align: center;
+      background: var(--bg);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .upload-zone:hover { border-color: var(--blue); background: var(--blue-bg); }
+    .upload-zone input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-zone-text { font-size: 13px; color: var(--ink-3); }
+    .upload-zone-text strong { color: var(--blue); font-weight: 500; }
+    .image-previews {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .image-preview {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      aspect-ratio: 1 / 1;
+    }
+    .image-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── BOTTOM BAR ───────────────────────────────── */
+    .bottom-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 100;
+      background: rgba(249,250,251,0.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    }
+    .bottom-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      display: grid;
+      gap: 10px;
+    }
+    .answer-hint {
+      text-align: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--ink-4);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .yn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      justify-items: center;
+    }
+    .yn-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 78px;
+      height: 78px;
+      border-radius: 999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      border: 1.5px solid transparent;
+      padding: 0;
+      cursor: pointer;
+      transition: transform 0.1s ease, box-shadow 0.12s ease;
+      letter-spacing: -0.01em;
+    }
+    .yn-btn.yes { background: var(--yes-bg); color: var(--yes); border-color: #bbf7d0; }
+    .yn-btn.no  { background: var(--no-bg); color: var(--no); border-color: #fecaca; }
+    .yn-btn:hover { transform: translateY(-1px); }
+    .yn-btn:active { transform: scale(0.97); }
+    .yn-btn.is-selected.yes {
+      background: var(--yes); color: #fff; border-color: var(--yes);
+      box-shadow: 0 3px 10px rgba(22,163,74,0.25);
+    }
+    .yn-btn.is-selected.no {
+      background: var(--no); color: #fff; border-color: var(--no);
+      box-shadow: 0 3px 10px rgba(220,38,38,0.25);
+    }
+    .yn-btn.flash { animation: tapFlash 0.28s ease; }
+    @keyframes tapFlash {
+      0% { transform: scale(1); }
+      45% { transform: scale(0.92); }
+      100% { transform: scale(1); }
+    }
+    .nav-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: var(--white);
+      color: var(--ink-2);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .nav-btn:hover:not(:disabled) { background: var(--ink); color: #fff; border-color: var(--ink); transform: none; }
+    .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .nav-btn svg { width: 13px; height: 13px; stroke: currentColor; flex-shrink: 0; }
+    .submit-btn {
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .submit-btn:hover:not(:disabled) { background: #1f2937; }
+    .submit-btn:disabled { opacity: 0.5; cursor: wait; }
+    .export-btn {
+      background: var(--blue-bg);
+      color: var(--blue);
+      border: 1px solid #bfdbfe;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .export-btn:hover { background: #dbeafe; }
+    .export-btn.hidden { display: none; }
+
+    /* ── TOAST ─────────────────────────────────────── */
+    .toast {
+      position: fixed;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-6px);
+      background: var(--ink);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 10px 16px;
+      border-radius: 999px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+      z-index: 999;
+      opacity: 0;
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+      white-space: nowrap;
+      max-width: calc(100vw - 40px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.success { background: #15803d; }
+    .toast.error   { background: #b91c1c; }
+
+    @media (max-width: 380px) {
+      .yn-btn { width: 70px; height: 70px; font-size: 14px; }
+      .q-text { font-size: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- INTRO SCREEN -->
+  <div id="introScreen" class="screen active">
+    <div class="intro-inner">
+      <div class="intro-logo">
+        <div class="intro-logo-icon">🛡️</div>
+        <div class="intro-logo-text">
+          Food Safety Audit
+          <span>Questionnaire Tool</span>
+        </div>
+      </div>
+
+      <div class="intro-heading">
+        <h1>Before we begin,<br>fill in audit details.</h1>
+        <p>This will be attached to all your responses. You only need to enter this once.</p>
+      </div>
+
+      <div class="intro-stats">
+        <div class="stat-box">
+          <div class="stat-num">80</div>
+          <div class="stat-lbl">Questions</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">15</div>
+          <div class="stat-lbl">Sections</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">~20</div>
+          <div class="stat-lbl">Minutes</div>
+        </div>
+      </div>
+
+      <div class="intro-form">
+        <div class="intro-form-title">Audit Information</div>
+        <div class="form-row">
+          <label for="auditorName">Auditor Name</label>
+          <input id="auditorName" placeholder="e.g. Juan dela Cruz" autocomplete="name" />
+        </div>
+        <div class="form-row">
+          <label for="company">Company / Site</label>
+          <input id="company" placeholder="e.g. ABC Food Corporation" />
+        </div>
+        <div class="form-row">
+          <label for="auditDate">Audit Date</label>
+          <input id="auditDate" type="date" />
+        </div>
+      </div>
+
+      <button class="start-btn" id="startBtn">Start Audit →</button>
+    </div>
+  </div>
+
+  <!-- AUDIT SCREEN -->
+  <div id="auditScreen" class="screen">
+    <header class="audit-header">
+      <div class="audit-header-top">
+        <div id="sectionName" class="audit-section-name">Section 1</div>
+        <div id="qCount" class="audit-q-count">1 / 80</div>
+      </div>
+      <div class="progress-row">
+        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+        <div id="progressPct" class="progress-pct">0%</div>
+      </div>
+    </header>
+
+    <div class="audit-scroll">
+      <div id="questionStage" class="question-stage"></div>
+    </div>
+
+    <div class="bottom-bar">
+      <div class="bottom-inner">
+        <div class="answer-hint">Tap to answer &amp; continue</div>
+        <div class="yn-row">
+          <button id="yesBtn" class="yn-btn yes" type="button">Yes</button>
+          <button id="noBtn"  class="yn-btn no"  type="button">No</button>
+        </div>
+        <div class="nav-row">
+          <button id="prevBtn" class="nav-btn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            Prev
+          </button>
+          <button id="nextBtn" class="nav-btn" type="button">
+            Next
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+          <button id="submitBtn" class="submit-btn" type="button">Submit</button>
+          <button id="exportBtn" class="export-btn hidden" type="button">Export Excel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDezQAX3tMHoZVUGJTO5dge2DSnQ2rGGfY",
+      authDomain: "question-d34bd.firebaseapp.com",
+      projectId: "question-d34bd",
+      storageBucket: "question-d34bd.firebasestorage.app",
+      messagingSenderId: "1022608341698",
+      appId: "1:1022608341698:web:410278813b8c674986595b",
+      measurementId: "G-ZN1Z8T3X0Q"
+    };
+
+    const fireApp = initializeApp(firebaseConfig);
+    const db = getFirestore(fireApp);
+    isSupported().then(ok => { if (ok) getAnalytics(fireApp); }).catch(() => {});
+
+    const classifications = ["Compliant","Critical","Major","Minor","OFI","N/A"];
+
+    const sections = [
+      { title: "Organization, Qualification & Responsibilities", questions: [
+        "Is there an established organizational structure with clear separation between QA/QC and Production functions, and has the establishment secured the required legal and regulatory permits: a) FDA-License to Operate, b) FDA-Certificate of Product Registration, c) Business Permit, d) Sanitary Permit, e) Fire and Safety?",
+        "Are the QA/QC and production managers/heads adequately trained?",
+        "Are personnel roles and responsibilities clearly defined, and is there a provided and approved training program established and implemented?",
+        "Have food handlers, maintenance, and relevant personnel received updated training on GMP, SSOPs, and other food safety practices by qualified trainers?",
+        "Are personnel handling strong chemicals trained in safe handling techniques? (Indicate trainings attended)"
+      ]},
+      { title: "Location, Grounds, Plant Design & Layout", questions: [
+        "Is there an updated master plan diagram showing operational routes and designated areas to ensure smooth operations and prevent cross-contamination?",
+        "Are the establishment's location and surrounding grounds designed and maintained to prevent contamination, weather damage, flooding, seepage, and pest entry or harboring?",
+        "Are the facility's size, design, and layout adequate to support good hygiene and prevent cross-contamination?",
+        "Is the manufacturing area for human food not used for manufacturing non-human food, animal feed, or inedible products?",
+        "Are walls, partitions, and ceilings smooth, light-colored, easy to clean, pest-free, and made of waterproof materials where needed?",
+        "Are floors non-absorbent, washable, non-slip, crevice-free, and designed for proper drainage and cleaning?",
+        "Are wall, floor, and ceiling junctions in food areas sealed and coved for easy cleaning?",
+        "Are windows and openings easy to clean, designed to minimize dirt build-up, and fitted with removable insect-proof screens when needed?",
+        "Are doors smooth, non-absorbent, easy to clean and/or disinfect, and where necessary, self-closing and close-fitting?",
+        "Are floors and drains properly designed with covers, traps, and grease traps to prevent stagnant water?"
+      ]},
+      { title: "Sanitation & Hygiene Facilities", questions: [
+        "Is there an adequate supply of potable water with proper storage, distribution, and temperature control, and is water tested at least annually to meet PNS for Drinking Water standards?",
+        "Are cleaning facilities for utensils and equipment adequately provided, well-located, and spacious enough for proper cleaning?",
+        "Are personnel hygiene facilities properly provided and located to maintain hygiene and prevent contamination?",
+        "Are there adequate facilities provided for heating, drying, cooking, frying, baking, cooling, refrigerating, chilling, freezing, and other temperature-controlled processes?",
+        "Is the storage temperature for storing/staging refrigerated, chilled or frozen food controlled and monitored?",
+        "Are there adequate means of natural or mechanical ventilation to minimize air-borne contamination of food?",
+        "Are natural or artificial lighting with adequate light intensity provided to enable hygienic operation?",
+        "Are all light fixtures protected (e.g. with shield or made of shatterproof material) to prevent contamination by breakages?",
+        "Are there adequate storage facilities for food ingredients, raw materials, packaging, in-process and finished products, and non-food chemicals?"
+      ]},
+      { title: "Equipment & Food Contact Surfaces", questions: [
+        "Are food-contact surfaces and equipment durable, hygienic, easy to clean, disinfect, and well maintained to prevent contamination?",
+        "Does equipment have no glass parts, lacquer, paint, or any coating that may chip off during operation?",
+        "Do seams of food contact surfaces smoothly bonded, without crevices, and maintained to minimize accumulation of food particles?",
+        "Are equipment and devices for measuring temperature, pressure, airflow, and humidity properly designed for food use and maintained in working condition?",
+        "Are clean and sanitized portable equipment, utensils, and single-use containers stored in a manner protected from splash, dust, and other contamination?",
+        "Are non-food contact equipment designed for easy cleaning and maintenance?",
+        "Do FBOs without laboratory capability use accredited third-party or government labs for testing?"
+      ]},
+      { title: "Food Safety Verification & Compliance", questions: [
+        "Are quality control systems in place, including documented procedures and work instructions, for sampling, inspecting, and testing starting materials, in-process materials, intermediate and bulk products, and finished products?",
+        "Is there an established and implemented calibration and maintenance program for all processing equipment, testing instruments, and measuring devices?",
+        "Are maintenance activities done in a manner that will not cause contamination to the food and processing environment?",
+        "Are control measures such as hand swabbing in place to prevent contamination of food, food-contact surfaces, or packaging?",
+        "Is verification of effectiveness of cleaning and sanitation conducted, such as equipment swab and air monitoring?"
+      ]},
+      { title: "Disease Control & Personal Hygiene", questions: [
+        "Are disease control and personnel hygiene procedures established, including conditions requiring medical examination or exclusion from food handling?",
+        "Are personnel provided with valid health certificates or fit-to-work/medical certificates with no observed/suspected illness or symptoms?",
+        "Do all personnel, including visitors, wear appropriate PPE (clean outer garments, gloves, mask, hair/beard net, lab gown, working shoes)?",
+        "Are personnel removing items (e.g., jewelry) that may contaminate food, and is this monitored (e.g., Loose Item Monitoring)?",
+        "Do all personnel thoroughly wash and sanitize hands as necessary?"
+      ]},
+      { title: "Sanitary Facilities", questions: [
+        "Are designated pipelines provided for both potable and non-potable water supply and gas line, maintained in good condition without leakage?",
+        "Are sink drain lines with P-traps properly installed and maintained in good condition without leakage?",
+        "Is an adequate number of toilet facilities provided?",
+        "Is the toilet facility well-ventilated, with water and handwashing, and not directly opening to production (or with tight-fitting, self-closing doors)?",
+        "Are adequate hand washing and sanitizing facilities strategically installed where appropriate?",
+        "Is a footbath or disinfecting mat provided at the entrance of the production area or where necessary?",
+        "Are solid wastes and inedible materials placed in designated areas and protected where necessary from pests?",
+        "Are designated areas provided for cleaning of equipment, cleaning implements and working shoes?"
+      ]},
+      { title: "Maintenance, Cleaning & Sanitation", questions: [
+        "Are maintenance, cleaning, and sanitation SOPs/work instructions in place to keep all equipment and the establishment sanitary?",
+        "Are detergents, sanitizers, hazardous materials, and other supplies used in a safe and effective manner?",
+        "Are concentrations monitored and maintained at appropriate levels where sanitizing solutions are used to ensure effective sanitizing?"
+      ]},
+      { title: "Pest Control", questions: [
+        "Are the processing areas maintained free of insects, rodents, pests, other animals, and pets?",
+        "Are pest control programs, plans, or SOPs established and maintained?",
+        "Are monitoring/service records maintained? (Indicate frequency of treatment and monitoring)",
+        "Are chemicals/pesticides used provided with MSDS and FDA Certificate of Product Registration?"
+      ]},
+      { title: "Production & Process Control", questions: [
+        "Are raw/packaging materials or ingredients adequately inspected, sorted, or otherwise properly handled to ascertain that they are clean and suitable for processing?",
+        "Are manufacturing procedures and work instructions provided, monitored and controlled?",
+        "Are product specifications and control parameters for finished products, raw materials, packaging, and chemicals documented, with process flow charts with QC points?",
+        "Are procedures in place to prevent microbiological cross-contamination, including separation of raw/unprocessed from processed or ready-to-eat food?",
+        "Is there effective product information and consumer awareness?",
+        "Does labelling of prepackaged food products conform to mandatory requirements per AO No. 2014-0030 and amendments, including lot and/or batch identification?",
+        "Is there an approved procedure defining conditions and specifications for rework/reprocessing to ensure food safety?"
+      ]},
+      { title: "Product Returns, Complaints & Recalls", questions: [
+        "Are returned products segregated and are quality complaints recorded and investigated per procedure?",
+        "Are procedures in place for product returns and recalls, with SSOPs aligned with FDA rules and documented mock recalls?"
+      ]},
+      { title: "Documentation", questions: [
+        "Are procedures and specifications for all food operations regularly maintained, reviewed, and updated?",
+        "Is a system of documentation established to ensure traceability of all products throughout the food chain?",
+        "Are procedures for retaining all appropriate documents established?"
+      ]},
+      { title: "Quality Audit", questions: [
+        "Are quality audit procedures in place, with reports used to drive corrections and verify compliance?",
+        "Does the organization conduct internal audits at planned intervals to verify food safety system conformance and effective implementation?",
+        "Are audits planned considering process importance, previous results, and with clearly defined criteria, scope, frequency, and methods?",
+        "Does the selection of auditors and conduct of audits ensure objectivity and impartiality, with auditors not auditing their own work?",
+        "Are responsibilities and requirements for planning, conducting, reporting, and maintaining audit records defined in a documented procedure?",
+        "Do follow-up activities include verification of actions taken and reporting results, with management ensuring corrective actions are implemented without undue delay?",
+        "Are non-conformities from the previous internal audit verified? Are CARs for third-party audits verified and closed?"
+      ]},
+      { title: "Warehousing & Distribution", questions: [
+        "Are written procedures in place for sanitary handling, storage, transport, and stock rotation (FIFO/FEFO) of materials and products?",
+        "Are storage and transport areas clean, pest-free, and maintained with controlled and monitored conditions?",
+        "Are storage areas and stocks labeled and identified to prevent mix-ups?",
+        "Are chemicals, defective stock, returns, and potentially contaminated materials stored separately from food and packaging?"
+      ]},
+      { title: "Retention Samples", questions: [
+        "Are written SOPs for sample retention established and implemented, including retention period and storage conditions?"
+      ]}
+    ];
+
+    const total = sections.reduce((n, s) => n + s.questions.length, 0);
+    const state = sections.map(s => s.questions.map(() => ({ answer:"", remarks:"", classification:"N/A", images:[] })));
+    let curSec = 0, curQ = 0, navDir = "forward";
+
+    const introScreen = document.getElementById("introScreen");
+    const auditScreen = document.getElementById("auditScreen");
+    const startBtn = document.getElementById("startBtn");
+    const stageEl = document.getElementById("questionStage");
+    const sectionNameEl = document.getElementById("sectionName");
+    const qCountEl = document.getElementById("qCount");
+    const fillEl = document.getElementById("progressFill");
+    const pctEl = document.getElementById("progressPct");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const exportBtn = document.getElementById("exportBtn");
+    const toastEl = document.getElementById("toast");
+    let excelJsModulePromise = null;
+
+    let toastTimer;
+    function showToast(msg, type = "") {
+      toastEl.textContent = msg;
+      toastEl.className = `toast ${type} show`;
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), 3000);
+    }
+
+    startBtn.addEventListener("click", () => {
+      introScreen.classList.remove("active");
+      auditScreen.classList.add("active");
+      render();
+    });
+
+    function globalNum(si, qi) {
+      let n = 1;
+      for (let i = 0; i < si; i++) n += sections[i].questions.length;
+      return n + qi;
+    }
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+    }
+    function formatQuestionForCard(text) {
+      let formatted = String(text);
+      formatted = formatted.replace(/:\s*([a-z]\))/gi, ":\n$1");
+      formatted = formatted.replace(/,\s*([a-z]\))/gi, ",\n$1");
+      return formatted;
+    }
+    function formatQuestionForExcel(index, text) {
+      return `${index}. ${formatQuestionForCard(text)}`;
+    }
+    function countAnswered() {
+      let answered = 0;
+      for (const section of state) {
+        for (const item of section) {
+          if (item.answer) answered += 1;
+        }
+      }
+      return answered;
+    }
+    function isAuditComplete() {
+      for (const section of state) {
+        for (const item of section) {
+          if (!item.answer || !item.classification) return false;
+        }
+      }
+      return true;
+    }
+    function findPrev(si, qi) {
+      if (qi > 0) return { si, qi: qi-1 };
+      if (si > 0) return { si: si-1, qi: sections[si-1].questions.length-1 };
+      return null;
+    }
+    function findNext(si, qi) {
+      if (qi < sections[si].questions.length-1) return { si, qi: qi+1 };
+      if (si < sections.length-1) return { si: si+1, qi: 0 };
+      return null;
+    }
+
+    function render() {
+      const gn = globalNum(curSec, curQ);
+      const pct = Math.round((gn / total) * 100);
+      const answered = countAnswered();
+      const atLastQuestion = !findNext(curSec, curQ);
+      const canExport = atLastQuestion && isAuditComplete();
+      fillEl.style.width = pct + "%";
+      pctEl.textContent = pct + "%";
+      qCountEl.innerHTML = `${gn} / ${total} · <span class="answered">${answered} answered</span>`;
+      sectionNameEl.textContent = `${curSec + 1}. ${sections[curSec].title}`;
+      prevBtn.disabled = !findPrev(curSec, curQ);
+      nextBtn.disabled = !findNext(curSec, curQ);
+      exportBtn.classList.toggle("hidden", !canExport);
+
+      const s = state[curSec][curQ];
+      const qid = `s${curSec}_q${curQ}`;
+      const pillClass = s.answer === "Yes" ? "yes" : s.answer === "No" ? "no" : "pending";
+      const pillText = s.answer || "Not answered";
+
+      const card = document.createElement("div");
+      card.className = "question-card";
+      card.innerHTML = `
+        <div class="q-top">
+          <div class="q-num-label">Question ${gn} · Sec ${curSec+1} of ${sections.length}</div>
+          <div class="q-answer-pill ${pillClass}">${pillText}</div>
+        </div>
+        <div class="q-text-wrap">
+          <div class="q-text">${escapeHtml(formatQuestionForCard(sections[curSec].questions[curQ]))}</div>
+        </div>
+        <div class="q-divider"></div>
+        <div class="q-fields">
+          <div>
+            <div class="q-field-label">Classification <span style="color:#dc2626">*</span></div>
+            <select id="${qid}_cls">
+              <option value="">Select classification…</option>
+              ${classifications.map(c => `<option value="${c}" ${s.classification===c?"selected":""}>${c}</option>`).join("")}
+            </select>
+          </div>
+          <div>
+            <div class="q-field-label">Remarks</div>
+            <textarea id="${qid}_rem" placeholder="Optional observations or notes…">${s.remarks}</textarea>
+          </div>
+          <div>
+            <div class="q-field-label">Photo Evidence</div>
+            <div class="upload-zone">
+              <input id="${qid}_img" type="file" accept="image/*" multiple />
+              <div class="upload-zone-text"><strong>Tap to attach photos</strong> · JPG, PNG, HEIC</div>
+            </div>
+            ${s.images.length ? `<div class="image-previews">${s.images.map(f=>`<div class="image-preview"><img src="${f.dataUrl}" alt="${escapeHtml(f.name)}" title="${escapeHtml(f.name)}" loading="lazy" /></div>`).join("")}</div>` : ""}
+          </div>
+        </div>
+      `;
+
+      card.classList.add(navDir === "forward" ? "enter-from-right" : "enter-from-left");
+      stageEl.replaceChildren(card);
+      requestAnimationFrame(() => requestAnimationFrame(() => card.classList.add("is-active")));
+
+      yesBtn.classList.toggle("is-selected", s.answer === "Yes");
+      noBtn.classList.toggle("is-selected", s.answer === "No");
+    }
+
+    stageEl.addEventListener("change", async e => {
+      const t = e.target; const id = t.id || "";
+      if (id.endsWith("_cls")) {
+        const qi = +id.match(/_q(\d+)_cls$/)?.[1];
+        if (!isNaN(qi)) state[curSec][qi].classification = t.value;
+      }
+      if (id.endsWith("_img") && t.files?.length) {
+        const qi = +id.match(/_q(\d+)_img$/)?.[1];
+        if (!isNaN(qi)) {
+          try {
+            const imgs = [];
+            for (const f of t.files) {
+              const d = await toBase64(f);
+              if (d.length > 900000) throw new Error(`"${f.name}" is too large.`);
+              imgs.push({ name: f.name, dataUrl: d });
+            }
+            state[curSec][qi].images = imgs;
+            render();
+          } catch(err) { t.value = ""; showToast(err.message, "error"); }
+        }
+      }
+    });
+
+    stageEl.addEventListener("input", e => {
+      const t = e.target; const id = t.id || "";
+      if (id.endsWith("_rem")) {
+        const qi = +id.match(/_q(\d+)_rem$/)?.[1];
+        if (!isNaN(qi)) state[curSec][qi].remarks = t.value;
+      }
+    });
+
+    function toBase64(f) {
+      return new Promise((res, rej) => {
+        const r = new FileReader();
+        r.onload = () => res(String(r.result||""));
+        r.onerror = rej;
+        r.readAsDataURL(f);
+      });
+    }
+
+    function buildResponses({ requireComplete }) {
+      const responses = [];
+      let n = 1;
+      for (let si = 0; si < sections.length; si++) {
+        for (let qi = 0; qi < sections[si].questions.length; qi++) {
+          const s = state[si][qi];
+          if (requireComplete && !s.answer) throw new Error(`Question ${n} needs an answer.`);
+          if (requireComplete && !s.classification) throw new Error(`Question ${n} needs a classification.`);
+          responses.push({
+            questionNumber: n,
+            section: sections[si].title,
+            question: sections[si].questions[qi],
+            answer: s.answer || "",
+            classification: s.classification || "",
+            remarks: s.remarks.trim(),
+            imageCount: s.images.length,
+            images: s.images
+          });
+          n += 1;
+        }
+      }
+      return responses;
+    }
+
+    async function getExcelJsModule() {
+      if (!excelJsModulePromise) {
+        excelJsModulePromise = import("https://cdn.jsdelivr.net/npm/exceljs@4.4.0/+esm");
+      }
+      const mod = await excelJsModulePromise;
+      return mod.default || mod;
+    }
+
+    function imageExtensionFromDataUrl(dataUrl) {
+      const mime = String(dataUrl.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/)?.[1] || "").toLowerCase();
+      if (mime.includes("png")) return "png";
+      if (mime.includes("gif")) return "gif";
+      if (mime.includes("webp")) return "webp";
+      return "jpeg";
+    }
+
+    async function exportExcel() {
+      try {
+        const rows = buildResponses({ requireComplete: false });
+        const auditorName = document.getElementById("auditorName").value.trim();
+        const company = document.getElementById("company").value.trim();
+        const auditDate = document.getElementById("auditDate").value || "";
+        const now = new Date().toISOString();
+
+        const headerLines = [
+          ["Auditor Name", auditorName],
+          ["Company / Site", company],
+          ["Audit Date", auditDate],
+          ["Exported At", now],
+          []
+        ];
+        const columns = ["Question", "Answer", "Classification", "Remarks", "Photo"];
+        const dataLines = rows.map((r) => [
+          formatQuestionForExcel(r.questionNumber, r.question),
+          r.answer,
+          r.classification,
+          r.remarks
+        ]);
+
+        const ExcelJS = await getExcelJsModule();
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet("Audit Responses");
+
+        [...headerLines, columns].forEach((line) => worksheet.addRow(line));
+        const firstDataRow = worksheet.rowCount + 1;
+        dataLines.forEach((line) => worksheet.addRow([...line, ""]));
+
+        worksheet.columns = [
+          { width: 95 },
+          { width: 12 },
+          { width: 16 },
+          { width: 42 },
+          { width: 24 }
+        ];
+
+        for (let i = 0; i < rows.length; i += 1) {
+          const rowData = rows[i];
+          const excelRowNumber = firstDataRow + i;
+          const row = worksheet.getRow(excelRowNumber);
+          row.alignment = { vertical: "top", wrapText: true };
+
+          if (rowData.images.length > 0 && rowData.images[0]?.dataUrl) {
+            const imageDataUrl = rowData.images[0].dataUrl;
+            const imageId = workbook.addImage({
+              base64: imageDataUrl,
+              extension: imageExtensionFromDataUrl(imageDataUrl)
+            });
+            worksheet.addImage(imageId, {
+              tl: { col: 4, row: excelRowNumber - 1 },
+              ext: { width: 140, height: 100 }
+            });
+            row.height = 78;
+            row.getCell(5).value = " ";
+          }
+        }
+
+        const safeDate = auditDate || now.slice(0, 10);
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob(
+          [buffer],
+          { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }
+        );
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `food-safety-audit-${safeDate}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast("Exported as XLSX.", "success");
+      } catch (err) {
+        showToast(err.message || "Export failed.", "error");
+      }
+    }
+
+    function move(step) {
+      const t = step < 0 ? findPrev(curSec, curQ) : findNext(curSec, curQ);
+      if (!t) return;
+      navDir = step < 0 ? "backward" : "forward";
+      curSec = t.si; curQ = t.qi;
+      render();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function answer(ans) {
+      state[curSec][curQ].answer = ans;
+      const btn = ans === "Yes" ? yesBtn : noBtn;
+      btn.classList.remove("flash");
+      void btn.offsetWidth;
+      btn.classList.add("flash");
+      if (findNext(curSec, curQ)) { move(1); }
+      else { render(); showToast("Last question reached!"); }
+    }
+
+    prevBtn.addEventListener("click", () => move(-1));
+    nextBtn.addEventListener("click", () => move(1));
+    yesBtn.addEventListener("click", () => answer("Yes"));
+    noBtn.addEventListener("click", () => answer("No"));
+    exportBtn.addEventListener("click", exportExcel);
+
+    submitBtn.addEventListener("click", async () => {
+      submitBtn.disabled = true;
+      showToast("Submitting…");
+      try {
+        const responses = buildResponses({ requireComplete: true }).map((r) => ({
+          questionNumber: r.questionNumber,
+          section: r.section,
+          question: r.question,
+          answer: r.answer,
+          remarks: r.remarks,
+          classification: r.classification,
+          images: r.images
+        }));
+        const ref = await addDoc(collection(db, "audits"), {
+          auditorName: document.getElementById("auditorName").value.trim(),
+          company: document.getElementById("company").value.trim(),
+          auditDate: document.getElementById("auditDate").value || null,
+          createdAt: serverTimestamp(),
+          responses
+        });
+        showToast(`✓ Submitted! ID: ${ref.id}`, "success");
+      } catch(err) {
+        showToast(err.message || "Submission failed.", "error");
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
