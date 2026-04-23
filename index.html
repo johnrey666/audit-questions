@@ -921,10 +921,6 @@
             </select>
           </div>
           <div>
-            <div class="q-field-label">Remarks</div>
-            <textarea id="${qid}_rem" placeholder="Optional observations or notes…">${s.remarks}</textarea>
-          </div>
-          <div>
             <div class="q-field-label">Photo Evidence</div>
             <div class="photo-btn-row">
               <label class="photo-btn camera-btn">
@@ -946,6 +942,10 @@
               </label>
             </div>
             ${s.images.length ? `<div class="image-previews">${s.images.map(f=>`<div class="image-preview"><img src="${f.dataUrl}" alt="${escapeHtml(f.name)}" title="${escapeHtml(f.name)}" loading="lazy" /></div>`).join("")}</div>` : ""}
+          </div>
+          <div>
+            <div class="q-field-label">Remarks</div>
+            <textarea id="${qid}_rem" placeholder="Optional observations or notes…">${s.remarks}</textarea>
           </div>
         </div>
       `;
