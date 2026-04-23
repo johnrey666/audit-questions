@@ -417,6 +417,21 @@
       object-fit: cover;
       display: block;
     }
+    .image-preview-del {
+      position: absolute;
+      top: 3px; right: 3px;
+      width: 20px; height: 20px;
+      background: rgba(0,0,0,0.55);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+      padding: 0;
+    }
+    .image-preview-del:hover { background: var(--no); }
 
     /* ── BOTTOM BAR ───────────────────────────────── */
     .bottom-bar {
@@ -941,7 +956,7 @@
                 Choose File
               </label>
             </div>
-            ${s.images.length ? `<div class="image-previews">${s.images.map(f=>`<div class="image-preview"><img src="${f.dataUrl}" alt="${escapeHtml(f.name)}" title="${escapeHtml(f.name)}" loading="lazy" /></div>`).join("")}</div>` : ""}
+            ${s.images.length ? `<div class="image-previews">${s.images.map((f,idx)=>`<div class="image-preview"><img src="${f.dataUrl}" alt="${escapeHtml(f.name)}" title="${escapeHtml(f.name)}" loading="lazy" /><button class="image-preview-del" data-qi="${curQ}" data-idx="${idx}" title="Remove photo">✕</button></div>`).join("")}</div>` : ""}
           </div>
           <div>
             <div class="q-field-label">Remarks</div>
@@ -981,7 +996,22 @@
       }
       if ((id.endsWith("_img") || id.endsWith("_cam")) && t.files?.length) {
         const qi = +id.match(/_q(\d+)_(img|cam)$/)?.[1];
-        if (!isNaN(qi)) { t.value = ""; await handleImageInput(t.files, qi); }
+        if (!isNaN(qi)) {
+          const snapshot = Array.from(t.files); // snapshot before clearing
+          t.value = "";
+          await handleImageInput(snapshot, qi);
+        }
+      }
+    });
+
+    stageEl.addEventListener("click", e => {
+      const btn = e.target.closest(".image-preview-del");
+      if (!btn) return;
+      const qi = +btn.dataset.qi;
+      const idx = +btn.dataset.idx;
+      if (!isNaN(qi) && !isNaN(idx)) {
+        state[curSec][qi].images.splice(idx, 1);
+        render();
       }
     });
 
