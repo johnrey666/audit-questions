@@ -538,18 +538,21 @@
     .submit-btn:hover:not(:disabled) { background: #1f2937; transform: translateY(-1px); }
     .submit-btn:disabled { opacity: 0.5; cursor: wait; }
     .export-btn {
-      background: var(--blue-bg);
+      background: #dbeafe;
       color: var(--blue);
-      border: 1px solid #bfdbfe;
+      border: 1px solid #93c5fd;
       border-radius: var(--radius-sm);
-      padding: 10px 12px;
+      padding: 12px 16px;
       font-family: 'Poppins', sans-serif;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       cursor: pointer;
       transition: background 0.18s ease, transform 0.12s ease, border-color 0.18s ease;
+      width: 100%;
+      grid-column: 1 / -1;
+      margin-top: 8px;
     }
-    .export-btn:hover { background: #dbeafe; border-color: #93c5fd; transform: translateY(-1px); }
+    .export-btn:hover { background: #bfdbfe; border-color: #60a5fa; transform: translateY(-1px); }
     .export-btn.hidden { display: none; }
 
     /* ── TOAST ─────────────────────────────────────── */
