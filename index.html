@@ -36,7 +36,14 @@
       -webkit-font-smoothing: antialiased;
     }
     .screen { display: none; min-height: 100dvh; flex-direction: column; }
-    .screen.active { display: flex; }
+    .screen.active {
+      display: flex;
+      animation: screenFadeIn 0.25s ease;
+    }
+    @keyframes screenFadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     /* ── INTRO ─────────────────────────────────────── */
     #introScreen {
@@ -244,11 +251,15 @@
       box-shadow: var(--shadow);
       overflow: hidden;
       will-change: transform, opacity;
-      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease;
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1), opacity 0.22s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
     .question-card.enter-from-right { transform: translateX(48px); opacity: 0; }
     .question-card.enter-from-left  { transform: translateX(-48px); opacity: 0; }
     .question-card.is-active        { transform: translateX(0); opacity: 1; }
+    .question-card:hover {
+      border-color: #dbe3ef;
+      box-shadow: 0 8px 24px rgba(17,24,39,0.08);
+    }
     .question-card.leave-to-left    { transform: translateX(-48px); opacity: 0; pointer-events: none; position: absolute; top: 0; left: 0; right: 0; }
     .question-card.leave-to-right   { transform: translateX(48px); opacity: 0; pointer-events: none; position: absolute; top: 0; left: 0; right: 0; }
 
@@ -330,22 +341,62 @@
       background: var(--white);
       box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
     }
-    .upload-zone {
+
+    /* ── PHOTO BUTTONS ───────────────────────────── */
+    .photo-btn-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .photo-btn {
       position: relative;
-      border: 1px dashed var(--border-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 11px 10px;
+      background: var(--white);
+      border: 1px solid var(--border-2);
       border-radius: var(--radius-sm);
-      padding: 14px;
-      text-align: center;
-      background: var(--bg);
       cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
+      font-family: 'Poppins', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-2);
+      text-align: center;
+      transition: background 0.14s, border-color 0.14s, transform 0.1s;
+      overflow: hidden;
     }
-    .upload-zone:hover { border-color: var(--blue); background: var(--blue-bg); }
-    .upload-zone input[type="file"] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    .photo-btn input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
     }
-    .upload-zone-text { font-size: 13px; color: var(--ink-3); }
-    .upload-zone-text strong { color: var(--blue); font-weight: 500; }
+    .photo-btn:hover {
+      background: var(--blue-bg);
+      border-color: #93c5fd;
+      color: var(--blue);
+      transform: translateY(-1px);
+    }
+    .photo-btn:active { transform: scale(0.98); }
+    .photo-btn svg {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      flex-shrink: 0;
+    }
+    .photo-btn.camera-btn {
+      border-color: #bbf7d0;
+      color: var(--yes);
+    }
+    .photo-btn.camera-btn:hover {
+      background: var(--yes-bg);
+      border-color: #86efac;
+    }
+
     .image-previews {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
@@ -411,12 +462,12 @@
       border: 1.5px solid transparent;
       padding: 0;
       cursor: pointer;
-      transition: transform 0.1s ease, box-shadow 0.12s ease;
+      transition: transform 0.14s ease, box-shadow 0.16s ease, filter 0.16s ease;
       letter-spacing: -0.01em;
     }
     .yn-btn.yes { background: var(--yes-bg); color: var(--yes); border-color: #bbf7d0; }
     .yn-btn.no  { background: var(--no-bg); color: var(--no); border-color: #fecaca; }
-    .yn-btn:hover { transform: translateY(-1px); }
+    .yn-btn:hover { transform: translateY(-2px); filter: saturate(1.04); }
     .yn-btn:active { transform: scale(0.97); }
     .yn-btn.is-selected.yes {
       background: var(--yes); color: #fff; border-color: var(--yes);
@@ -451,10 +502,10 @@
       font-size: 13px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
       white-space: nowrap;
     }
-    .nav-btn:hover:not(:disabled) { background: var(--ink); color: #fff; border-color: var(--ink); transform: none; }
+    .nav-btn:hover:not(:disabled) { background: var(--ink); color: #fff; border-color: var(--ink); transform: translateY(-1px); }
     .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .nav-btn svg { width: 13px; height: 13px; stroke: currentColor; flex-shrink: 0; }
     .submit-btn {
@@ -467,9 +518,9 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: background 0.18s ease, transform 0.12s ease;
     }
-    .submit-btn:hover:not(:disabled) { background: #1f2937; }
+    .submit-btn:hover:not(:disabled) { background: #1f2937; transform: translateY(-1px); }
     .submit-btn:disabled { opacity: 0.5; cursor: wait; }
     .export-btn {
       background: var(--blue-bg);
@@ -481,9 +532,9 @@
       font-size: 13px;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.15s;
+      transition: background 0.18s ease, transform 0.12s ease, border-color 0.18s ease;
     }
-    .export-btn:hover { background: #dbeafe; }
+    .export-btn:hover { background: #dbeafe; border-color: #93c5fd; transform: translateY(-1px); }
     .export-btn.hidden { display: none; }
 
     /* ── TOAST ─────────────────────────────────────── */
@@ -875,9 +926,24 @@
           </div>
           <div>
             <div class="q-field-label">Photo Evidence</div>
-            <div class="upload-zone">
-              <input id="${qid}_img" type="file" accept="image/*" multiple />
-              <div class="upload-zone-text"><strong>Tap to attach photos</strong> · JPG, PNG, HEIC</div>
+            <div class="photo-btn-row">
+              <label class="photo-btn camera-btn">
+                <input id="${qid}_cam" type="file" accept="image/*" capture="environment" multiple />
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                Open Camera
+              </label>
+              <label class="photo-btn">
+                <input id="${qid}_img" type="file" accept="image/*" multiple />
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                Choose File
+              </label>
             </div>
             ${s.images.length ? `<div class="image-previews">${s.images.map(f=>`<div class="image-preview"><img src="${f.dataUrl}" alt="${escapeHtml(f.name)}" title="${escapeHtml(f.name)}" loading="lazy" /></div>`).join("")}</div>` : ""}
           </div>
@@ -892,26 +958,30 @@
       noBtn.classList.toggle("is-selected", s.answer === "No");
     }
 
+    async function handleImageInput(files, qi) {
+      try {
+        const imgs = [];
+        for (const f of files) {
+          const d = await toBase64(f);
+          if (d.length > 900000) throw new Error(`"${f.name}" is too large.`);
+          imgs.push({ name: f.name, dataUrl: d });
+        }
+        state[curSec][qi].images = [...state[curSec][qi].images, ...imgs];
+        render();
+      } catch(err) {
+        showToast(err.message, "error");
+      }
+    }
+
     stageEl.addEventListener("change", async e => {
       const t = e.target; const id = t.id || "";
       if (id.endsWith("_cls")) {
         const qi = +id.match(/_q(\d+)_cls$/)?.[1];
         if (!isNaN(qi)) state[curSec][qi].classification = t.value;
       }
-      if (id.endsWith("_img") && t.files?.length) {
-        const qi = +id.match(/_q(\d+)_img$/)?.[1];
-        if (!isNaN(qi)) {
-          try {
-            const imgs = [];
-            for (const f of t.files) {
-              const d = await toBase64(f);
-              if (d.length > 900000) throw new Error(`"${f.name}" is too large.`);
-              imgs.push({ name: f.name, dataUrl: d });
-            }
-            state[curSec][qi].images = imgs;
-            render();
-          } catch(err) { t.value = ""; showToast(err.message, "error"); }
-        }
+      if ((id.endsWith("_img") || id.endsWith("_cam")) && t.files?.length) {
+        const qi = +id.match(/_q(\d+)_(img|cam)$/)?.[1];
+        if (!isNaN(qi)) { t.value = ""; await handleImageInput(t.files, qi); }
       }
     });
 
