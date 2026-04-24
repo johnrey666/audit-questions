@@ -397,6 +397,32 @@
       border-color: #86efac;
     }
 
+    /* ── COMPRESS OVERLAY ────────────────────────── */
+    .compress-overlay {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: var(--blue-bg);
+      border: 1px solid #93c5fd;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--blue);
+      margin-top: 8px;
+    }
+    .compress-overlay.visible { display: flex; }
+    .compress-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid #bfdbfe;
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     .image-previews {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
@@ -702,6 +728,61 @@
     const db = getFirestore(fireApp);
     isSupported().then(ok => { if (ok) getAnalytics(fireApp); }).catch(() => {});
 
+    // ── IMAGE COMPRESSION ──────────────────────────────────────────────────────
+    // Max dimensions and target file size after compression
+    const MAX_DIMENSION = 1280;   // px — longest side
+    const TARGET_SIZE   = 700000; // bytes — ~700 KB target
+    const MIN_QUALITY  = 0.35;    // never go below this quality
+
+    /**
+     * Compresses an image File/Blob to a JPEG data URL that fits within TARGET_SIZE.
+     * Shrinks dimensions first, then iteratively reduces JPEG quality.
+     */
+    async function compressImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onerror = reject;
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onerror = reject;
+          img.onload = () => {
+            try {
+              // 1. Resize so longest side ≤ MAX_DIMENSION
+              let { width, height } = img;
+              if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                const ratio = Math.min(MAX_DIMENSION / width, MAX_DIMENSION / height);
+                width  = Math.round(width  * ratio);
+                height = Math.round(height * ratio);
+              }
+
+              const canvas = document.createElement("canvas");
+              canvas.width  = width;
+              canvas.height = height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, width, height);
+
+              // 2. Iteratively lower quality until size fits
+              let quality = 0.85;
+              let dataUrl = canvas.toDataURL("image/jpeg", quality);
+
+              while (dataUrl.length > TARGET_SIZE * 1.37 && quality > MIN_QUALITY) {
+                // base64 overhead ≈ 4/3, so target length = TARGET_SIZE * (4/3) ≈ *1.37
+                quality = Math.max(quality - 0.1, MIN_QUALITY);
+                dataUrl = canvas.toDataURL("image/jpeg", quality);
+              }
+
+              resolve(dataUrl);
+            } catch (err) {
+              reject(err);
+            }
+          };
+          img.src = String(e.target?.result || "");
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    // ──────────────────────────────────────────────────────────────────────────
+
     const classifications = ["Compliant","Critical","Major","Minor","OFI","N/A"];
 
     const sections = [
@@ -959,6 +1040,10 @@
                 Choose File
               </label>
             </div>
+            <div id="${qid}_compress" class="compress-overlay">
+              <div class="compress-spinner"></div>
+              Compressing photo…
+            </div>
             ${s.images.length ? `<div class="image-previews">${s.images.map((f,idx)=>`<div class="image-preview"><img src="${f.dataUrl}" alt="${escapeHtml(f.name)}" title="${escapeHtml(f.name)}" loading="lazy" /><button class="image-preview-del" data-qi="${curQ}" data-idx="${idx}" title="Remove photo">✕</button></div>`).join("")}</div>` : ""}
           </div>
           <div>
@@ -976,18 +1061,25 @@
       noBtn.classList.toggle("is-selected", s.answer === "No");
     }
 
-    async function handleImageInput(files, qi) {
+    async function handleImageInput(files, si, qi) {
+      const qid = `s${si}_q${qi}`;
+      const compressEl = document.getElementById(`${qid}_compress`);
+      if (compressEl) compressEl.classList.add("visible");
+
       try {
         const imgs = [];
         for (const f of files) {
-          const d = await toBase64(f);
-          if (d.length > 900000) throw new Error(`"${f.name}" is too large.`);
-          imgs.push({ name: f.name, dataUrl: d });
+          // Compress the image using canvas — works for all sizes
+          const dataUrl = await compressImage(f);
+          imgs.push({ name: f.name.replace(/\.[^.]+$/, ".jpg"), dataUrl });
         }
-        state[curSec][qi].images = [...state[curSec][qi].images, ...imgs];
+        state[si][qi].images = [...state[si][qi].images, ...imgs];
         render();
+        showToast(`${imgs.length} photo${imgs.length > 1 ? "s" : ""} added`, "success");
       } catch(err) {
-        showToast(err.message, "error");
+        if (compressEl) compressEl.classList.remove("visible");
+        showToast("Could not process photo. Try another image.", "error");
+        console.error(err);
       }
     }
 
@@ -1000,9 +1092,9 @@
       if ((id.endsWith("_img") || id.endsWith("_cam")) && t.files?.length) {
         const qi = +id.match(/_q(\d+)_(img|cam)$/)?.[1];
         if (!isNaN(qi)) {
-          const snapshot = Array.from(t.files); // snapshot before clearing
+          const snapshot = Array.from(t.files);
           t.value = "";
-          await handleImageInput(snapshot, qi);
+          await handleImageInput(snapshot, curSec, qi);
         }
       }
     });
@@ -1025,15 +1117,6 @@
         if (!isNaN(qi)) state[curSec][qi].remarks = t.value;
       }
     });
-
-    function toBase64(f) {
-      return new Promise((res, rej) => {
-        const r = new FileReader();
-        r.onload = () => res(String(r.result||""));
-        r.onerror = rej;
-        r.readAsDataURL(f);
-      });
-    }
 
     function buildResponses({ requireComplete }) {
       const responses = [];
